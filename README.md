@@ -1,168 +1,277 @@
-Bank Voice Training Simulation
-Convergent AI - Technical Task (Option A)
-Candidate - Parinitha 
+# Bank Voice Training – Realtime WebRTC + LangGraph Trainer
 
-A real-time, voice-based simulation environment where a learner practices handling bank customer support scenarios with an LLM-driven “customer.” The emphasis is on AI quality, stateful multi-agent orchestration, latency/cost observability, safety, and evaluation logic.
-UI is intentionally minimal, as specified in the assignment.
-•	A detailed architectural write-up is included in the repository as:
-Technical_Documentation.pdf (Architecture, design rationale, multi-agent system, reliability, state management, trade-offs).
+**Convergent AI – Technical Task (Option A)**  
+**Candidate – Parinitha**
 
-•	A demonstration video showcasing a live session is provided as well.
+A **real-time, voice-based training environment** where a learner practices handling **bank customer support** calls against an **LLM-driven “customer”**.
 
-Please find the video via this link: https://www.loom.com/share/2ddf6387d111445587806343fc52c495
+This version extends the original turn-based audio prototype with:
 
-(Note: In the recording, the browser microphone sometimes filtered out the bot TTS audio as “background noise,” causing it not to be captured in the screencast. For completeness, I have included the audio samples that were recorded automatically of the AI customer reply inside the /audio_out folder.)
-________________________________________
+- **OpenAI Realtime (WebRTC) voice calls**
+- **Streaming transcripts & customer partials**
+- **Per-turn LangGraph evaluation & coaching**
+- **Latency / micro-cost tracking**
+- **End-of-session assessment**
 
-Features
+The focus is on **AI quality**, **stateful multi-agent orchestration**, **observability**, and **training usefulness**, not on flashy UI.
 
-1.	Real-Time Voice Interaction
-o	Mic input → ASR → LLM simulation → TTS output
-o	Turn-based real-time voice with immediate playback
-o	Latency logged for ASR / LLM / TTS per turn
-o	Cost estimation per turn
-o	Three fully implemented scenarios/personas
+---
 
-2.	Multi-Agent LangGraph Simulation
-    Each turn activates:
-o	Customer Generation Agent
-o	Evaluation Agent (6 skills)
-o	Coaching Agent (explains scores + next-step hint)
-o	Safety Agent (prevents unsafe model behavior)
+## Demo Video
 
-3.	Skill Evaluation (Per Turn)
-    Each learner response is scored on:
-o	Greeting & rapport
-o	Empathy
-o	Probing questions
-o	Clarity
-o	Resolution progress
-o	Compliance
-    Includes:
-o	Coaching narrative
-o	Live hint for next turn
-o	Mode switching (normal / support / strict / safe)
+**Demo video (WebRTC trainer):**  
+👉 _TBD – add your Loom link here after recording_
 
-4.	End-of-Session Assessment
-    Provides:
-o	A full session summary
-o	Quoted positive example
-o	Quoted needs-improvement example
-o	Skill trends across turns
+_(In the previous submission I used a turn-based audio demo. For this iteration I added a full WebRTC-based real-time trainer with live scoring and a session assessment.)_
 
-5.	Latency & Cost Awareness
-o	ASR, LLM, TTS latency per turn
-o	Cost estimation (Whisper + GPT + TTS)
-o	Displayed directly in the UI
+---
 
-6.	 Optional RAG (Partial Implementation)
-The customer agent has access to a small, embedded “bank policy” document indexed with FAISS.  
-This is used internally to keep behaviour consistent with basic support guidelines  
-(e.g., verifying identity, not asking for PINs, blocking lost cards).
-There is no live document upload in the current version; policy context is static by design.
+## What’s New in This Version
 
-7.	 Safety & Reliability
-o	Strict safety rules
-o	Deterministic evaluator prompts
-o	Turn caps
-o	Memory truncation
-o	Graceful handling of missing data / unexpected turns
-________________________________________
+Compared to the original turn-based audio demo, this repo now includes:
 
-2. Personas & Scenarios
-    Three required personas:
-1.	Lost Card — Angry customer
-2.	Account Locked — Stressed customer
-3.	Failed Transfer — Confused customer
-    Each includes:
-•	Scenario context
-•	Emotional baseline
-•	Difficulty
-•	Target skill set
-•	Persona tone & constraints
-________________________________________
+### 1. Realtime WebRTC Voice Trainer
 
-Browser UI
-→ Audio recording
-→ Upload to /session/turn-audio
-→ ASR transcription
-→ LLM simulation (LangGraph)
-→ Evaluation + coaching + safety
-→ TTS synthesis
-→ Audio playback in browser
-All state is stored per session in memory.
+- Browser establishes a **WebRTC call** to `gpt-4o-realtime`:
+  - Mic → OpenAI Realtime → TTS back to browser audio.
+- Customer persona is an **angry / stressed / confused bank customer** (depending on scenario).
+- The call supports:
+  - **Barge-in** (you can interrupt)
+  - **Streaming text partials** from the customer
+  - **Full transcripts** for both sides
 
-High-Level Components:
-client.html             # Minimal UI (mic input + audio playback + metrics)
-api.py                  # FastAPI backend (ASR, LLM pipeline, TTS, session mgmt)
-voice_pipeline.py       # ASR/TTS utilities, temp handling, file outputs
-agents.py               # LangGraph workflow: customer, evaluator, coach, safety
-personas.py             # Persona definitions
-scenarios.py            # Scenario metadata + initial state builders
-state.py                # SimulationState structure
-config.py               # Environment keys & model configuration
-main_cli.py             # CLI version of the simulation (text-only)
-requirements.txt
-.env.example
-README.md               # This document
-Technical_Documentation.pdf   # Deep architecture explanation
-________________________________________
+### 2. LangGraph “Trainer” for Live Coaching
 
-4. Models Used
-•	ASR: Whisper (OpenAI)
-•	LLM (customer, evaluation, coaching, safety): gpt-4o-mini
-•	TTS: OpenAI Speech (MP3 output)
-All models chosen for latency, cost efficiency, and deterministic behavior.
-________________________________________
+Each **agent turn** is sent to a LangGraph “trainer” pipeline:
 
-5. How to Run Locally
+- Uses the **existing multi-agent graph**:
+  - **Evaluator node** – scores the turn
+  - **Coach node** – explains scores & suggests next move
+  - **Safety node** – enforces safety / tone constraints
+- Trainer runs **side-by-side** with the realtime audio; it does **not** block the call.
 
-1. Install Dependencies
+For each turn, the trainer produces:
+
+- **Scores** on:
+  - `greeting_and_rapport`
+  - `empathy`
+  - `probing_questions`
+  - `resolution_progress`
+  - `compliance`
+- A **live hint**: “What to do on your very next turn”
+- A **coaching narrative**: why you got that score, concrete improvement tips
+- **Latency** and **cost estimate** per trainer turn
+
+### 3. End-of-Session Assessment (Realtime Session)
+
+The trainer keeps a **turn log** and a **latency / cost log** in memory.  
+At any time, you can click **“✨ View assessment”** and the backend will:
+
+- Summarize the full session
+- Highlight **what you did well** (with quotes)
+- Highlight **what needs improvement** (with quotes)
+- Comment on how your scores evolved over the call
+
+---
+
+## Features Overview
+
+### Realtime Voice Interaction (WebRTC)
+
+- Browser mic → OpenAI Realtime (WebRTC) → streamed TTS back to browser.
+- **AI customer starts the call** (e.g. “I’ve lost my card and there are charges I don’t recognise.”).
+- You respond as the **bank support agent**.
+- You can **interrupt** the customer at any time (barge-in).
+- **Live transcript** shows turns from both sides.
+
+### Multi-Agent LangGraph Trainer
+
+For each agent turn, the trainer runs:
+
+- **Evaluator Agent** – scores the turn against the rubric.
+- **Coaching Agent** – explains the scores and gives a next-step hint.
+- **Safety Agent** – ensures the advice stays within safe / compliant behaviour.
+
+The trainer is **stateful**: it sees the history of the session, not just one isolated line.
+
+### Skill Evaluation (Per Turn)
+
+Each agent turn is scored on:
+
+- Greeting & rapport  
+- Empathy  
+- Probing questions  
+- Resolution progress  
+- Compliance / safety
+
+Trainer returns:
+
+- Structured **scores** dict  
+- A **coaching explanation**  
+- A concise **live hint** (“Ask them to confirm which transactions they recognise…”)  
+- A **mode** flag (e.g. `normal` / `support` / `strict` / `safe`)
+
+### End-of-Session Assessment
+
+From the accumulated state, the backend builds a **session assessment**:
+
+- Summary of what happened
+- Positive example quote
+- Needs-improvement example quote
+- Comments across the rubric dimensions
+
+### Latency & Cost Awareness
+
+For both the turn-based and realtime trainer:
+
+- **Latency tracked per trainer turn**:
+  - `llm` latency (evaluator + coach + safety)
+  - Simple per-turn latency log for a chart
+- **Rough cost estimation**:
+  - Approximated tokens from text length
+  - Tiny “micro-dollars” for LLM / ASR / TTS
+  - Useful for showing how training cost scales
+
+### Personas & Scenarios
+
+Three personas are implemented:
+
+1. **Lost Card — Angry customer**
+2. **Account Locked — Stressed customer**
+3. **Failed Transfer — Confused customer**
+
+Each persona has:
+
+- Scenario context
+- Emotional baseline
+- Difficulty
+- Target skill set
+- Persona tone & constraints
+
+The **WebRTC trainer UI** lets you pick any persona from a dropdown; the backend returns:
+
+- Realtime **instructions** for the model
+- Scenario **context**
+- A **starting utterance** for the AI customer
+
+---
+
+## Architecture
+
+At a high level:
+
+### Frontend
+
+- `client_webrtc.html`
+  - WebRTC setup to OpenAI Realtime
+  - Mic streaming + remote TTS audio playback
+  - Full transcript & per-turn conversation log
+  - Right-hand panel:
+    - Live **scores**
+    - **Hint** & **coaching**
+    - **Latency** chart
+    - **Cost** per trainer turn
+    - **Assessment** viewer
+
+### Backend (FastAPI + LangGraph)
+
+- `api.py`
+  - `/health` – healthcheck
+  - `/session/start` – original turn-based session start
+  - `/session/turn-text` – original text-only mode
+  - `/session/turn-audio` – original turn-based audio mode
+  - `/session/assessment/{session_id}` – builds session assessment
+  - `/realtime/score-turn` – **trainer API** called by the WebRTC UI
+- `realtime_webrtc.py`
+  - `/realtime/config` – returns realtime model, voice, persona instructions, and scenario context
+  - `/realtime/call-setup` – optional server-side relay to OpenAI Realtime (HTML demo currently calls OpenAI directly with the user’s key)
+- `agents.py`
+  - LangGraph workflow: customer, evaluator, coach, safety
+- `personas.py`
+  - Persona definitions (angry / stressed / confused customers)
+- `scenarios.py`
+  - Scenario metadata + initial state builders
+- `state.py`
+  - `SimulationState` structure
+- `voice_pipeline.py`
+  - ASR / TTS utilities (for turn-based mode)
+- `config.py`
+  - Environment keys & model configuration
+
+---
+
+## Models Used
+
+- **Realtime Voice (WebRTC):** `gpt-4o-realtime`  
+- **ASR (turn-based mode):** Whisper (`whisper-1`)  
+- **LLM (customer, evaluation, coaching, safety):** `gpt-4o-mini`  
+- **TTS (turn-based mode):** OpenAI Speech  
+
+Models are chosen to balance **latency**, **cost**, and **behavior quality**.
+
+How to Run Locally
+
+Clone the Repositary
+
+git clone https://github.com/parinitharamesh02/bank-voice-training-simulation.git
+
+cd bank-voice-training-simulation
+
+Create & Activate Virtual Environment
+
+python -m venv venv Set-ExecutionPolicy -Scope CurrentUser RemoteSigned venv\Scripts\activate
+
+On macOS/Linux source venv/bin/activate
+
+Install Dependencies
 
 pip install -r requirements.txt
 
-2. Configure Environment
+Configure Environment
 
-3. In the existing .env file in project root, add the API key:
-OPENAI_API_KEY=your_key_here
+In the existing .env file in project root, add the API key: OPENAI_API_KEY=your_key_here
 
-4. Start Backend
+Start Backend
+
 uvicorn api:app --reload
-You might have to open this link - http://127.0.0.1:8000/docs 
 
-5. Open the UI
+The backend will start at:
+
+http://127.0.0.1:8000 or http://127.0.0.1:8000/docs
+
+Open the UI
+
 Open client.html directly in your browser.
+
 (No web server required for the frontend.)
+
 You can now start a session, speak via microphone, and interact with the AI customer.
-________________________________________
 
-6. Deliverables Included
-•	Full runnable repository
-•	Live voice demo video
-•	Technical_Documentation.pdf
-Includes:
-o	Architecture diagrams
-o	Multi-agent workflow
-o	Reliability & safety considerations
-o	Human-centric design philosophy
-o	RAG integration
-o	Latency/cost analysis
-o	Limitations & future improvements
-________________________________________
-7. Known Limitations
-•	Audio is turn-based, not full WebRTC duplex streaming
-•	RAG is partial (sufficient for demonstration)
-•	No avatar / facial animation (optional extension)
-•	No multi-session long-term memory
-________________________________________
-8. What I Would Do With More Time
-•	Add WebRTC full-duplex with barge-in interruption
-•	Introduce a talking-head avatar with emotion-aware lip sync
-•	Expand RAG to semantic policy lookup with authoritative citations
-•	Create more advanced scoring rubrics
-•	Add datastore-backed analytics & session replay
-•	Support long-term adaptive learning across sessions
-________________________________________
-Final Note
-This project fulfills all required elements of Option A, plus multiple extensions (live hints, assessment, RAG integration, cost/latency tracking). The emphasis remains on AI rigor, state correctness, and simulation reliability, as requested in the task specification.
+Known Limitations
 
+The Realtime demo uses browser-side OpenAI key (for simplicity).
+The /realtime/call-setup route is available if we want to hide the key server-side.
+
+Long-term, persistent analytics are in-memory only (no database).
+
+RAG is static policy context, not a full document management system.
+
+No avatar / visual agent; UI is intentionally minimal for clarity.
+
+Future Improvements
+
+With more time, I would:
+
+Move to a server-side Realtime relay (hiding the API key).
+
+Add multi-session analytics, trends, and leaderboards.
+
+Expand RAG to more structured policy collections with citations.
+
+Introduce a talking-head avatar for presence and realism.
+
+Enrich the scoring rubric (e.g. de-escalation, time to resolution).
+
+Add exportable session summaries for LMS integration.
+
+---
