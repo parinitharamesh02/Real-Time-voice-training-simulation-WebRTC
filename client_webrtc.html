@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bank Voice Training – Realtime + LangGraph Trainer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #a5b4fc;
+      --accent-soft: #e0e7ff;
+      --accent-2: #f9a8d4;
+      --accent-3: #6ee7b7;
+      --danger: #fb7185;
+      --radius: 14px;
+      --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e0f2fe 0, #f9fafb 30%, #fdf2ff 80%);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1rem 3rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app { width: 100%; max-width: 1100px; }
+
+    header { margin-bottom: 1.5rem; }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin: 0 0 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h1 span.badge {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #4f46e5;
+      border: 1px solid #c7d2fe;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .backend-tag {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.03);
+      border: 1px dashed #d1d5db;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 1rem 1.25rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-title { font-weight: 600; font-size: 1rem; }
+
+    .pill {
+      font-size: 0.75rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+
+    .row { margin-bottom: 0.5rem; }
+
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: inline-block;
+      margin-bottom: 0.1rem;
+    }
+
+    select {
+      font-family: inherit;
+      padding: 0.4rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      outline: none;
+      font-size: 0.9rem;
+      background: #f9fafb;
+    }
+
+    input {
+      font-family: inherit;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #4f46e5, #a855f7);
+      color: white;
+      box-shadow: 0 8px 18px rgba(79, 70, 229, 0.35);
+    }
+
+    button.ghost {
+      background: #f3f4f6;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 10px rgba(15,23,42,0.06);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(148, 163, 184, 0.25);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0px);
+      box-shadow: var(--shadow);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      margin-right: 0.35rem;
+      background: #a3e635;
+    }
+
+    .status-dot.busy { background: #fb923c; }
+
+    .engine-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .bubble {
+      padding: 0.4rem 0.7rem;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      min-height: 40px;
+      white-space: pre-wrap;
+    }
+
+    .bubble.customer {
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+
+    .bubble.agent {
+      background: #ecfeff;
+      border-color: #a5f3fc;
+    }
+
+    .bubble-placeholder {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .metric-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-label { color: var(--muted); }
+    .metric-value { font-weight: 600; }
+
+    .grid-metrics {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    pre {
+      background: #f9fafb;
+      padding: 0.5rem 0.6rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      margin: 0.25rem 0;
+      border: 1px dashed #e5e7eb;
+      white-space: pre-wrap;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .latency-chart {
+      margin-top: 0.5rem;
+      background: #f9fafb;
+      border-radius: 10px;
+      border: 1px dashed #e5e7eb;
+      padding: 0.5rem;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .latency-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .latency-bar-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      width: 70px;
+      flex-shrink: 0;
+    }
+
+    .latency-bar-track {
+      flex: 1;
+      background: #e5e7eb;
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .latency-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #4f46e5, #f97373);
+    }
+
+    .latency-bar-value {
+      font-size: 0.75rem;
+      color: var(--muted);
+      width: 60px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .error-banner {
+      font-size: 0.8rem;
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      border-radius: 999px;
+      padding: 0.25rem 0.6rem;
+      display: none;
+      margin-bottom: 0.5rem;
+    }
+
+    .transcript-box {
+      margin-top: 0.25rem;
+      border-radius: 10px;
+      border: 1px dashed #e5e7eb;
+      padding: 0.4rem 0.5rem;
+      background: #f9fafb;
+      max-height: 140px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+    }
+
+    .transcript-line { margin-bottom: 2px; }
+
+    .transcript-speaker {
+      font-weight: 600;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-row">
+        <div>
+          <h1>
+            Bank Voice Training
+            <span class="badge">Realtime WebRTC · LangGraph Trainer</span>
+          </h1>
+          <p class="subtitle">
+            You are the bank support agent. The AI is the angry customer. Your turns are scored and coached in real time.
+          </p>
+        </div>
+        <div class="backend-tag">
+          Backend: <code>http://127.0.0.1:8000</code>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Scenario + Live Call -->
+      <div>
+        <!-- Setup -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🎛️ Session setup</div>
+            <span class="pill">Realtime voice call</span>
+          </div>
+
+          <div id="errorBanner" class="error-banner"></div>
+
+          <div class="row">
+            <label>OpenAI API key <small>(local demo only – never stored)</small></label><br/>
+            <input id="apiKeyInput" type="password" placeholder="sk-..." style="width:100%;padding:0.4rem 0.6rem;border-radius:999px;border:1px solid #d1d5db;outline:none;font-size:0.85rem;background:#f9fafb;" />
+          </div>
+
+          <div class="row">
+            <label for="persona">Persona</label><br/>
+            <select id="persona">
+              <option value="lost_card_angry">💳 Lost card (angry)</option>
+              <option value="account_locked_stressed">🔐 Account locked (stressed)</option>
+              <option value="failed_transfer_confused">💸 Failed transfer (confused)</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label>Scenario</label>
+            <div id="scenario" class="bubble" style="font-size:0.85rem;">
+              Loading scenario from backend…
+            </div>
+          </div>
+
+          <div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+            <div>
+              <button id="startCallBtn" class="primary">▶ Start voice call</button>
+              <button id="endCallBtn" class="ghost" disabled>⏹ End call</button>
+            </div>
+            <div class="engine-status">
+              <span class="status-dot" id="callStatusDot"></span>
+              <span id="callStatusText">Not in call</span>
+            </div>
+          </div>
+
+          <small>
+            The AI customer starts first (angry). Then you respond as the support agent and can interrupt (barge in) anytime.
+          </small>
+        </div>
+
+        <!-- Live call area -->
+        <div class="card" style="margin-top:1rem;">
+          <div class="card-header">
+            <div class="card-title">💬 Live conversation</div>
+            <span class="pill">Streaming partials</span>
+          </div>
+
+          <div class="row">
+            <strong>You (agent)</strong>
+            <div id="agentBubble" class="bubble agent">
+              <span class="bubble-placeholder">Listening… start speaking once the call connects.</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <strong>🗣️ Customer (LLM)</strong>
+            <div id="customerBubble" class="bubble customer">
+              <span class="bubble-placeholder">Customer is about to start speaking…</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>Realtime transcript</label>
+            <div id="transcriptBox" class="transcript-box">
+              <div class="transcript-line"><span class="transcript-speaker">System:</span> Transcript will appear here once the call starts.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conversation log (turns) -->
+        <div class="card" style="margin-top:1rem;">
+          <div class="card-header">
+            <div class="card-title">Conversation log</div>
+            <span class="pill">Per-turn state</span>
+          </div>
+          <pre id="logText"></pre>
+        </div>
+      </div>
+
+      <!-- RIGHT: Metrics / Coaching / Assessment -->
+      <div class="grid-metrics">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Agent performance (this turn)</div>
+            <span class="pill">Rubric & coaching</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Mode</span>
+            <span class="metric-value" id="modeText">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Live hint</span>
+            <span class="metric-value" id="hintText">—</span>
+          </div>
+          <div class="row">
+            <label>Scores</label>
+            <pre id="scoresText">{}</pre>
+            <small>greeting_and_rapport · empathy · probing_questions · resolution_progress · compliance</small>
+          </div>
+          <div class="row">
+            <label>Coaching</label>
+            <pre id="coachingText"></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Latency & cost</div>
+            <span class="pill">Trainer pipeline (LangGraph)</span>
+          </div>
+          <div class="row">
+            <label>Current trainer turn latency (s)</label>
+            <pre id="latencyText">{}</pre>
+            <small>LLM latency only (LangGraph trainer). Realtime audio latency is handled by OpenAI.</small>
+          </div>
+          <div class="row">
+            <label>Latency per trainer turn</label>
+            <div class="latency-chart" id="latencyChart">
+              <small>No trainer turns yet.</small>
+            </div>
+          </div>
+          <div class="row">
+            <label>Estimated cost (this trainer turn)</label>
+            <pre id="costText"></pre>
+            <small>Demo-only, rough micro-costs for the evaluation/coaching step.</small>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Session assessment</div>
+            <button id="assessmentBtn" class="ghost" disabled>✨ View assessment</button>
+          </div>
+          <pre id="assessmentText"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    let personaConfig = null;
+    let currentPersona = "lost_card_angry";
+
+    // Realtime call state
+    let pc = null;
+    let dataChannel = null;
+    let localStream = null;
+    let callActive = false;
+
+    // Trainer / LangGraph state
+    let trainerSessionId = null;
+    let lastCustomerText = "";
+    let lastAgentText = "";
+    let latencyLog = [];
+    let costLog = [];
+    let turnLog = [];
+    let turnCounter = 0;
+
+    // Buffer for streaming customer text
+    let customerTextBuffer = "";
+
+    // DOM refs
+    const personaSelect = document.getElementById("persona");
+    const scenarioDiv = document.getElementById("scenario");
+    const startCallBtn = document.getElementById("startCallBtn");
+    const endCallBtn = document.getElementById("endCallBtn");
+    const callStatusDot = document.getElementById("callStatusDot");
+    const callStatusText = document.getElementById("callStatusText");
+    const errorBanner = document.getElementById("errorBanner");
+
+    const agentBubble = document.getElementById("agentBubble");
+    const customerBubble = document.getElementById("customerBubble");
+    const transcriptBox = document.getElementById("transcriptBox");
+    const logText = document.getElementById("logText");
+
+    // Trainer panel
+    const modeText = document.getElementById("modeText");
+    const hintText = document.getElementById("hintText");
+    const scoresText = document.getElementById("scoresText");
+    const coachingText = document.getElementById("coachingText");
+    const latencyText = document.getElementById("latencyText");
+    const latencyChart = document.getElementById("latencyChart");
+    const costText = document.getElementById("costText");
+    const assessmentBtn = document.getElementById("assessmentBtn");
+    const assessmentText = document.getElementById("assessmentText");
+
+    function logEvent(level, ...args) {
+      if (level === "error") console.error("[error]", ...args);
+      else console.log(`[${level}]`, ...args);
+    }
+
+    function showError(msg) {
+      errorBanner.textContent = msg;
+      errorBanner.style.display = "block";
+    }
+
+    function clearError() {
+      errorBanner.textContent = "";
+      errorBanner.style.display = "none";
+    }
+
+    function setCallState(state) {
+      if (state === "idle") {
+        callStatusDot.className = "status-dot";
+        callStatusDot.style.background = "";
+        callStatusText.textContent = "Not in call";
+      } else if (state === "connecting") {
+        callStatusDot.className = "status-dot busy";
+        callStatusText.textContent = "Connecting…";
+      } else if (state === "active") {
+        callStatusDot.className = "status-dot";
+        callStatusDot.style.background = "#22c55e";
+        callStatusText.textContent = "In realtime call";
+      } else if (state === "ended") {
+        callStatusDot.className = "status-dot";
+        callStatusDot.style.background = "#9ca3af";
+        callStatusText.textContent = "Call ended";
+      }
+    }
+
+    function appendTranscript(speaker, text) {
+      const line = document.createElement("div");
+      line.className = "transcript-line";
+      const s = document.createElement("span");
+      s.className = "transcript-speaker";
+      s.textContent = speaker + ":";
+      const t = document.createElement("span");
+      t.textContent = " " + text;
+      line.appendChild(s);
+      line.appendChild(t);
+      transcriptBox.appendChild(line);
+      transcriptBox.scrollTop = transcriptBox.scrollHeight;
+    }
+
+    function formatTurnLog(turns) {
+      if (!turns || turns.length === 0) return "(no turns yet)";
+      return turns
+        .map((t) => {
+          const scores = t.scores ? JSON.stringify(t.scores, null, 2) : "{}";
+          return `Turn ${t.turn}:
+  Agent: ${t.agent}
+  Customer: ${t.customer}
+  Mode: ${t.mode}
+  Scores: ${scores}`;
+        })
+        .join("\n-----------------------------\n");
+    }
+
+    function renderLatencyChart(latencyLog) {
+      if (!latencyLog || latencyLog.length === 0) {
+        latencyChart.innerHTML = "<small>No trainer turns yet.</small>";
+        return;
+      }
+      let maxTotal = 0;
+      const totals = latencyLog.map((lat) => {
+        const total = lat.llm || 0;
+        if (total > maxTotal) maxTotal = total;
+        return total;
+      });
+
+      latencyChart.innerHTML = "";
+      latencyLog.forEach((lat, idx) => {
+        const total = totals[idx];
+        const pct = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
+
+        const row = document.createElement("div");
+        row.className = "latency-bar-row";
+
+        const label = document.createElement("div");
+        label.className = "latency-bar-label";
+        label.textContent = `Turn ${idx + 1}`;
+
+        const track = document.createElement("div");
+        track.className = "latency-bar-track";
+
+        const fill = document.createElement("div");
+        fill.className = "latency-bar-fill";
+        fill.style.width = `${pct.toFixed(1)}%`;
+
+        track.appendChild(fill);
+
+        const value = document.createElement("div");
+        value.className = "latency-bar-value";
+        value.textContent = `${total.toFixed(2)}s`;
+
+        row.appendChild(label);
+        row.appendChild(track);
+        row.appendChild(value);
+
+        latencyChart.appendChild(row);
+      });
+    }
+
+    // ---- Persona config from backend ----
+    async function loadPersonaConfig() {
+      try {
+        logEvent("info", "Loading persona config:", currentPersona);
+        const resp = await fetch(`${API_BASE}/realtime/config`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ persona_id: currentPersona })
+        });
+        if (!resp.ok) {
+          const txt = await resp.text();
+          logEvent("error", "/realtime/config failed", resp.status, txt);
+          scenarioDiv.textContent = "Failed to load scenario. Check backend.";
+          return;
+        }
+        personaConfig = await resp.json();
+        logEvent("info", "Loaded config for persona:", personaConfig.persona_id || currentPersona);
+        scenarioDiv.textContent = personaConfig.scenario_context || "(no scenario text)";
+      } catch (err) {
+        logEvent("error", "Error fetching persona config:", err);
+        scenarioDiv.textContent = "Error loading scenario from backend.";
+      }
+    }
+
+    personaSelect.addEventListener("change", () => {
+      currentPersona = personaSelect.value;
+      loadPersonaConfig();
+    });
+
+    // ---- Realtime call ----
+    async function startCall() {
+      clearError();
+      const apiKey = document.getElementById("apiKeyInput").value.trim();
+      if (!apiKey) {
+        showError("Please paste your OpenAI API key first.");
+        return;
+      }
+      if (!personaConfig) {
+        showError("Persona config not loaded yet. Try again in a moment.");
+        return;
+      }
+      if (callActive) return;
+
+      callActive = true;
+      setCallState("connecting");
+      startCallBtn.disabled = true;
+      endCallBtn.disabled = false;
+
+      // Reset UI + trainer state
+      transcriptBox.innerHTML = "";
+      appendTranscript("System", "Starting realtime call…");
+      agentBubble.innerHTML = '<span class="bubble-placeholder">Listening… start speaking once the call connects.</span>';
+      customerBubble.innerHTML = '<span class="bubble-placeholder">Customer is about to start speaking…</span>';
+      trainerSessionId = null;
+      lastCustomerText = "";
+      lastAgentText = "";
+      latencyLog = [];
+      costLog = [];
+      turnLog = [];
+      turnCounter = 0;
+      customerTextBuffer = "";
+      modeText.textContent = "—";
+      hintText.textContent = "—";
+      scoresText.textContent = "{}";
+      coachingText.textContent = "";
+      latencyText.textContent = "{}";
+      latencyChart.innerHTML = "<small>No trainer turns yet.</small>";
+      costText.textContent = "";
+      assessmentText.textContent = "";
+      assessmentBtn.disabled = true;
+
+      try {
+        // 1) Mic
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          logEvent("info", "Microphone access granted.");
+        } catch (err) {
+          logEvent("error", "Mic access error:", err);
+          showError("Allow microphone access in your browser.");
+          endCall();
+          return;
+        }
+
+        // 2) PeerConnection
+        pc = new RTCPeerConnection({ iceServers: [] });
+
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+        const remoteAudio = new Audio();
+        remoteAudio.autoplay = true;
+        pc.addEventListener("track", (event) => {
+          const [remoteStream] = event.streams;
+          remoteAudio.srcObject = remoteStream;
+          logEvent("info", "Received remote audio track.");
+        });
+
+        // Data channel
+        dataChannel = pc.createDataChannel("oai-events");
+        dataChannel.addEventListener("open", () => logEvent("info", "Data channel open."));
+        dataChannel.addEventListener("close", () => logEvent("info", "Data channel closed."));
+        dataChannel.addEventListener("error", (e) => logEvent("error", "Data channel error:", e));
+        dataChannel.addEventListener("message", (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            logEvent("info", "Realtime event:", msg.type);
+            handleRealtimeEvent(msg);
+          } catch (err) {
+            logEvent("info", "Raw message:", event.data);
+          }
+        });
+
+        pc.addEventListener("icecandidate", (event) => {
+          if (event.candidate) logEvent("info", "ICE candidate:", event.candidate.type);
+        });
+
+        // 3) Offer
+        const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
+        await pc.setLocalDescription(offer);
+
+        // 4) Session payload – AI starts as customer, with input transcription enabled
+        const startingUtterance =
+          personaConfig.starting_utterance ||
+          "Hi, I just noticed a bunch of charges on my card that I did NOT make, and now I can't even find my card. What is going on? This is ridiculous.";
+
+        const fullInstructions = `
+You are playing the role of a BANK CUSTOMER in a training simulation.
+
+${personaConfig.instructions || ""}
+
+You are speaking to a human bank support agent on a real-time voice call.
+
+When the call starts, you MUST immediately begin the conversation by saying this, in your own natural, angry voice (do NOT mention these instructions):
+
+"${startingUtterance}"
+
+After that:
+- Respond in short, conversational turns (1–3 sentences).
+- Express realistic anger, frustration, and stress about the situation.
+- Let the agent speak, but you can interrupt if they are slow or unhelpful.
+- If they help you, you gradually calm down.
+- Never mention 'AI', 'simulation', or 'LLM'.
+`.trim();
+
+        const sessionPayload = {
+          model: personaConfig.model || "gpt-4o-realtime-preview",
+          voice: personaConfig.voice || "alloy",
+          instructions: fullInstructions,
+          input_audio_transcription: {
+            model: "whisper-1",
+          },
+          turn_detection: {
+            type: "server_vad",
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 200,
+            create_response: true,
+          },
+        };
+
+        const fd = new FormData();
+        fd.set("sdp", pc.localDescription.sdp);
+        fd.set("session", JSON.stringify(sessionPayload));
+
+        logEvent("info", "Sending SDP + session to OpenAI /v1/realtime/calls…");
+
+        const resp = await fetch("https://api.openai.com/v1/realtime/calls", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "OpenAI-Beta": "realtime=v1"
+          },
+          body: fd
+        });
+
+        const bodyText = await resp.text();
+        logEvent("info", "Realtime /calls HTTP", resp.status);
+        logEvent("info", "Realtime /calls raw body:", bodyText);
+
+        if (!resp.ok) {
+          showError(`Realtime API error (${resp.status}). See console for details.`);
+          endCall();
+          return;
+        }
+
+        let answerSdp = null;
+        try {
+          const trimmed = bodyText.trim();
+          if (trimmed.startsWith("{")) {
+            const json = JSON.parse(trimmed);
+            answerSdp =
+              json.sdp ||
+              (json.answer && json.answer.sdp) ||
+              (json.choices && json.choices[0] && json.choices[0].sdp) ||
+              null;
+          } else {
+            answerSdp = bodyText;
+          }
+        } catch (err) {
+          logEvent("error", "Failed to parse /calls body as JSON; treating as raw SDP.");
+          answerSdp = bodyText;
+        }
+
+        if (!answerSdp) {
+          showError("No SDP found in realtime response.");
+          endCall();
+          return;
+        }
+
+        await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
+        logEvent("info", "Realtime call established; remote SDP set.");
+        setCallState("active");
+        appendTranscript("System", "Call established. Angry customer will speak first.");
+      } catch (err) {
+        logEvent("error", "Failed to start realtime call:", err);
+        showError("Failed to start realtime call. See console for details.");
+        endCall();
+      }
+    }
+
+    function endCall() {
+      if (pc) {
+        try { pc.close(); } catch {}
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+      }
+      pc = null;
+      dataChannel = null;
+      localStream = null;
+      callActive = false;
+
+      setCallState("ended");
+      startCallBtn.disabled = false;
+      endCallBtn.disabled = true;
+
+      appendTranscript("System", "Call ended.");
+      logEvent("info", "Call ended & cleaned up.");
+    }
+
+    // ------- HANDLE REALTIME EVENTS (customer + your transcript) --------
+    function handleRealtimeEvent(msg) {
+      if (!msg || typeof msg !== "object") return;
+
+      // 1) CUSTOMER partial text
+      if (msg.type === "response.text.delta") {
+        const delta = msg.delta || "";
+        if (delta) {
+          customerTextBuffer += delta;
+          customerBubble.textContent = customerTextBuffer;
+          lastCustomerText = customerTextBuffer;
+        }
+      }
+
+      // 2) CUSTOMER final text
+      if (msg.type === "response.text.done") {
+        const finalText = (msg.text || customerTextBuffer).trim();
+        if (finalText) {
+          customerBubble.textContent = finalText;
+          lastCustomerText = finalText;
+          appendTranscript("Customer", finalText);
+
+          if (turnLog.length > 0) {
+            turnLog[turnLog.length - 1].customer = finalText;
+            logText.textContent = formatTurnLog(turnLog);
+          }
+        }
+        customerTextBuffer = "";
+      }
+
+      // 3) YOUR transcript (agent)
+      if (msg.type === "conversation.item.input_audio_transcription.completed") {
+        const t = msg.transcript || msg.text || "";
+        if (t) {
+          lastAgentText = t;
+          agentBubble.textContent = t;
+          appendTranscript("Agent", t);
+
+          // New turn in log
+          turnCounter += 1;
+          turnLog.push({
+            turn: turnCounter,
+            agent: t,
+            customer: lastCustomerText || "",
+            scores: {},
+            mode: "normal",
+          });
+          logText.textContent = formatTurnLog(turnLog);
+
+          // Send to trainer backend for scoring
+          autoScoreLastTurn(t);
+        }
+      }
+    }
+
+    // -------- Trainer call into FastAPI /realtime/score-turn ----------
+    async function autoScoreLastTurn(agentText) {
+      // 🔥 Always score the turn, even if we don't have customer text yet
+      const payload = {
+        session_id: trainerSessionId,
+        persona_id: currentPersona,
+        customer_text: lastCustomerText || "",
+        agent_text: agentText,
+      };
+
+      try {
+        logEvent("info", "Sending turn to trainer backend for scoring…", payload);
+        const resp = await fetch(`${API_BASE}/realtime/score-turn`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          logEvent("error", "/realtime/score-turn failed:", resp.status, txt);
+          return;
+        }
+
+        const data = await resp.json();
+        trainerSessionId = data.session_id;
+
+        modeText.textContent = data.mode || "normal";
+        hintText.textContent = data.live_hint || "—";
+        scoresText.textContent = JSON.stringify(data.scores || {}, null, 2);
+        coachingText.textContent = data.coaching || "";
+
+        if (data.latency) {
+          latencyText.textContent = JSON.stringify(data.latency, null, 2);
+        }
+        if (data.latency_log) {
+          latencyLog = data.latency_log;
+          renderLatencyChart(latencyLog);
+        }
+        if (data.cost_estimate) {
+          costText.textContent = JSON.stringify(data.cost_estimate, null, 2);
+        }
+
+        if (turnLog.length > 0) {
+          turnLog[turnLog.length - 1].scores = data.scores || {};
+          turnLog[turnLog.length - 1].mode = data.mode || "normal";
+          logText.textContent = formatTurnLog(turnLog);
+        }
+
+        assessmentBtn.disabled = false;
+      } catch (err) {
+        logEvent("error", "Trainer score error:", err);
+      }
+    }
+
+    // -------- Session assessment -----------
+    async function loadAssessment() {
+      clearError();
+      if (!trainerSessionId) {
+        showError("We need at least one scored turn before building an assessment.");
+        return;
+      }
+      assessmentText.textContent = "Loading assessment...";
+
+      try {
+        const resp = await fetch(`${API_BASE}/session/assessment/${trainerSessionId}`);
+        if (!resp.ok) {
+          const txt = await resp.text();
+          logEvent("error", "/session/assessment failed:", resp.status, txt);
+          assessmentText.textContent = "Error loading assessment.";
+          return;
+        }
+        const data = await resp.json();
+        assessmentText.textContent = data.assessment || "(no assessment)";
+      } catch (err) {
+        logEvent("error", "Assessment fetch error:", err);
+        assessmentText.textContent = "Error loading assessment.";
+      }
+    }
+
+    // Event listeners
+    startCallBtn.addEventListener("click", startCall);
+    endCallBtn.addEventListener("click", endCall);
+    assessmentBtn.addEventListener("click", loadAssessment);
+
+    // Init
+    setCallState("idle");
+    loadPersonaConfig();
+    logEvent(
+      "info",
+      "Client ready. Paste API key, pick persona, then Start voice call. Your spoken turns will be auto-scored by LangGraph."
+    );
+  </script>
+</body>
+</html>

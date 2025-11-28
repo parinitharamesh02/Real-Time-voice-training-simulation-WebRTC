@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bank Voice Training Simulation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #a5b4fc;      /* soft indigo */
+      --accent-soft: #e0e7ff;
+      --accent-2: #f9a8d4;    /* pastel pink */
+      --accent-3: #6ee7b7;    /* mint */
+      --danger: #fb7185;
+      --radius: 14px;
+      --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e0f2fe 0, #f9fafb 30%, #fdf2ff 80%);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1rem 3rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    header {
+      margin-bottom: 1.5rem;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin: 0 0 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h1 span.badge {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #4f46e5;
+      border: 1px solid #c7d2fe;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .backend-tag {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.03);
+      border: 1px dashed #d1d5db;
+    }
+
+    /* Layout */
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 1rem 1.25rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .pill {
+      font-size: 0.75rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+
+    .row {
+      margin-bottom: 0.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: inline-block;
+      margin-bottom: 0.1rem;
+    }
+
+    select {
+      font-family: inherit;
+      padding: 0.4rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      outline: none;
+      font-size: 0.9rem;
+      background: #f9fafb;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #4f46e5, #a855f7);
+      color: white;
+      box-shadow: 0 8px 18px rgba(79, 70, 229, 0.35);
+    }
+
+    button.secondary {
+      background: linear-gradient(135deg, #f9a8d4, #f97373);
+      color: white;
+      box-shadow: 0 8px 18px rgba(249, 168, 212, 0.35);
+    }
+
+    button.ghost {
+      background: #f3f4f6;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 10px rgba(15,23,42,0.06);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(148, 163, 184, 0.25);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0px);
+      box-shadow: var(--shadow);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .status {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      margin-right: 0.35rem;
+      background: #a3e635;
+    }
+
+    .status-dot.busy {
+      background: #fb923c;
+    }
+
+    .status-dot.done {
+      background: #22c55e;
+    }
+
+    .badge-soft {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: #ecfeff;
+      color: #0f766e;
+    }
+
+    .badge-soft span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #14b8a6;
+    }
+
+    .customer-bubble, .agent-bubble {
+      padding: 0.4rem 0.7rem;
+      border-radius: 14px;
+      font-size: 0.9rem;
+    }
+
+    .customer-bubble {
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+    }
+
+    .agent-bubble {
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+    }
+
+    pre {
+      background: #f9fafb;
+      padding: 0.5rem 0.6rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      margin: 0.25rem 0;
+      border: 1px dashed #e5e7eb;
+      white-space: pre-wrap;
+    }
+
+    small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+
+    .metric-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-label {
+      color: var(--muted);
+    }
+
+    .metric-value {
+      font-weight: 600;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .chip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #f97316;
+    }
+
+    .grid-metrics {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    /* Latency chart */
+
+    .latency-chart {
+      margin-top: 0.5rem;
+      background: #f9fafb;
+      border-radius: 10px;
+      border: 1px dashed #e5e7eb;
+      padding: 0.5rem;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .latency-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .latency-bar-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      width: 70px;
+      flex-shrink: 0;
+    }
+
+    .latency-bar-track {
+      flex: 1;
+      background: #e5e7eb;
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .latency-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #4f46e5, #f97373);
+    }
+
+    .latency-bar-value {
+      font-size: 0.75rem;
+      color: var(--muted);
+      width: 60px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-top: 0.25rem;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: #fce7f3;
+      color: #9d174d;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-row">
+        <div>
+          <h1>
+            Bank Voice Training Simulation
+            <span class="badge">Agentic, voice-first, adaptive</span>
+          </h1>
+          <p class="subtitle">
+            Practice real-time customer support calls with an AI-driven “customer” that listens, reacts, scores, and coaches you.
+          </p>
+        </div>
+        <div class="backend-tag">
+          Backend: <code>http://127.0.0.1:8000</code>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Scenario + Live Call -->
+      <div>
+        <!-- Scenario / Persona -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Scenario setup</div>
+            <span class="badge-soft"><span class="dot"></span> Bank support personas</span>
+          </div>
+          <div class="row">
+            <label for="persona">Persona</label><br/>
+            <select id="persona">
+              <option value="lost_card_angry">Lost card (angry)</option>
+              <option value="account_locked_stressed">Account locked (stressed)</option>
+              <option value="failed_transfer_confused">Failed transfer (confused)</option>
+            </select>
+          </div>
+          <div class="row">
+            <button id="startBtn" class="primary">
+               Start session
+            </button>
+          </div>
+          <div id="scenario"></div>
+        </div>
+
+        <!-- Live call area -->
+        <div class="card" id="callArea" style="margin-top: 1rem; display:none;">
+          <div class="card-header">
+            <div class="card-title">Live call</div>
+            <span class="pill">Mic in · Customer voice out</span>
+          </div>
+
+          <div class="row">
+            <strong>Customer</strong>
+            <div class="customer-bubble" id="customerText">(waiting...)</div>
+          </div>
+
+          <div class="row">
+            <button id="recordBtn" class="secondary" disabled>
+              🎙️ Record & Send
+            </button>
+            <div id="status" class="status">
+              <span class="status-dot"></span>
+              Idle
+            </div>
+          </div>
+
+          <div class="row">
+            <strong>Your transcript</strong>
+            <div class="agent-bubble" id="transcriptText"></div>
+          </div>
+
+          <div class="row">
+            <strong>AI customer audio</strong>
+            <audio id="customerAudio" controls></audio>
+          </div>
+        </div>
+
+        <!-- Conversation log -->
+        <div class="card" id="logCard" style="margin-top: 1rem; display:none;">
+          <div class="card-header">
+            <div class="card-title">Conversation log</div>
+            <span class="pill">Per-turn state</span>
+          </div>
+          <pre id="logText"></pre>
+        </div>
+      </div>
+
+      <!-- RIGHT: Metrics / Coaching / Assessment -->
+      <div class="grid-metrics">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Agent performance (this turn)</div>
+            <span class="pill">Rubric & coaching</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Mode</span>
+            <span class="metric-value" id="modeText">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Live hint</span>
+            <span class="metric-value" id="hintText">—</span>
+          </div>
+          <div class="row">
+            <label>Scores</label>
+            <pre id="scoresText">{}</pre>
+            <small>greeting_and_rapport · empathy · probing_questions · resolution_progress · compliance</small>
+          </div>
+          <div class="row">
+            <label>Coaching</label>
+            <pre id="coachingText"></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Latency & cost</div>
+            <span class="pill">ASR · LLM · TTS</span>
+          </div>
+          <div class="row">
+            <label>Current turn latency (s)</label>
+            <pre id="latencyText">{}</pre>
+            <small>ASR = speech-to-text · LLM = dialogue + evaluation · TTS = customer voice synthesis</small>
+          </div>
+          <div class="row">
+            <label>Latency per turn</label>
+            <div class="latency-chart" id="latencyChart">
+              <small>No turns yet.</small>
+            </div>
+          </div>
+          <div class="row">
+            <label>Estimated cost (this turn)</label>
+            <pre id="costText"></pre>
+            <small>Demo-only, rough micro-costs for ASR / LLM / TTS.</small>
+          </div>
+        </div>
+
+        <div class="card" id="assessmentArea" style="display:none;">
+          <div class="card-header">
+            <div class="card-title">Session assessment</div>
+            <button id="assessmentBtn" class="ghost">✨ View assessment</button>
+          </div>
+          <pre id="assessmentText"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    let sessionId = null;
+    let mediaRecorder = null;
+    let chunks = [];
+    let isRecording = false;
+
+    const startBtn = document.getElementById("startBtn");
+    const personaSelect = document.getElementById("persona");
+    const scenarioDiv = document.getElementById("scenario");
+    const callArea = document.getElementById("callArea");
+    const logCard = document.getElementById("logCard");
+
+    const recordBtn = document.getElementById("recordBtn");
+    const statusDiv = document.getElementById("status");
+    const customerText = document.getElementById("customerText");
+    const transcriptText = document.getElementById("transcriptText");
+    const customerAudio = document.getElementById("customerAudio");
+
+    const scoresText = document.getElementById("scoresText");
+    const coachingText = document.getElementById("coachingText");
+    const hintText = document.getElementById("hintText");
+    const modeText = document.getElementById("modeText");
+    const latencyText = document.getElementById("latencyText");
+    const latencyChart = document.getElementById("latencyChart");
+    const costText = document.getElementById("costText");
+    const logText = document.getElementById("logText");
+
+    const assessmentArea = document.getElementById("assessmentArea");
+    const assessmentBtn = document.getElementById("assessmentBtn");
+    const assessmentText = document.getElementById("assessmentText");
+
+    function setStatus(text, state) {
+      statusDiv.textContent = text;
+      const dot = document.createElement("span");
+      dot.className = "status-dot";
+
+      if (state === "busy") dot.classList.add("busy");
+      if (state === "done") dot.classList.add("done");
+
+      statusDiv.innerHTML = "";
+      statusDiv.appendChild(dot);
+      statusDiv.append(" " + text);
+    }
+
+    // ---- Start session ----
+    startBtn.addEventListener("click", async () => {
+      const persona = personaSelect.value;
+      scenarioDiv.textContent = "Starting session...";
+      setStatus("Idle", "idle");
+      transcriptText.textContent = "";
+      scoresText.textContent = "{}";
+      coachingText.textContent = "";
+      hintText.textContent = "—";
+      modeText.textContent = "—";
+      latencyText.textContent = "{}";
+      customerAudio.src = "";
+      assessmentText.textContent = "";
+      assessmentArea.style.display = "none";
+      logText.textContent = "";
+      latencyChart.innerHTML = "<small>No turns yet.</small>";
+      costText.textContent = "";
+
+      try {
+        const res = await fetch(`${API_BASE}/session/start`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ persona_id: persona })
+        });
+        const data = await res.json();
+        sessionId = data.session_id;
+
+        scenarioDiv.innerHTML = `
+          <div class="row"><strong>Persona:</strong> ${data.persona}</div>
+          <div class="row"><strong>Difficulty:</strong> ${data.difficulty}</div>
+          <div class="row"><strong>Context:</strong> ${data.context}</div>
+          <div class="row">
+            <strong>Target skills:</strong>
+            <div class="tag-list">
+              ${data.target_skills.map(s => `<span class="tag">${s}</span>`).join("")}
+            </div>
+          </div>
+        `;
+        callArea.style.display = "block";
+        logCard.style.display = "block";
+        assessmentArea.style.display = "block";
+
+        customerText.textContent = data.starting_utterance || "(Customer will respond after your first reply.)";
+        recordBtn.disabled = false;
+        setStatus("Session started. Click “Record & Send” to answer by voice.", "idle");
+      } catch (e) {
+        console.error(e);
+        scenarioDiv.textContent = "Error starting session.";
+        setStatus("Error starting session.", "busy");
+      }
+    });
+
+    // ---- Record & send audio turn ----
+    recordBtn.addEventListener("click", async () => {
+      if (!sessionId) {
+        alert("Start a session first.");
+        return;
+      }
+
+      if (!mediaRecorder) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+
+          mediaRecorder.ondataavailable = (e) => {
+            chunks.push(e.data);
+          };
+
+          mediaRecorder.onstop = async () => {
+            const blob = new Blob(chunks, { type: "audio/webm" });
+            chunks = [];
+            await sendAudioTurn(blob);
+          };
+        } catch (err) {
+          console.error(err);
+          alert("Mic access denied or not available.");
+          return;
+        }
+      }
+
+      if (!isRecording) {
+        mediaRecorder.start();
+        isRecording = true;
+        setStatus("Recording… click again to stop.", "busy");
+        recordBtn.textContent = "⏹ Stop & Send";
+      } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        setStatus("Processing turn…", "busy");
+        recordBtn.textContent = "🎙️ Record & Send";
+      }
+    });
+
+    async function sendAudioTurn(blob) {
+      const formData = new FormData();
+      formData.append("session_id", sessionId);
+      formData.append("audio", blob, "agent.webm");
+
+      try {
+        const res = await fetch(`${API_BASE}/session/turn-audio`, {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Error response:", text);
+          setStatus("Error: " + res.status, "busy");
+          return;
+        }
+        const data = await res.json();
+
+        transcriptText.textContent = data.transcript || "(no transcript)";
+        customerText.textContent = data.customer_reply || "(no reply)";
+        modeText.textContent = data.mode || "—";
+        hintText.textContent = data.live_hint || "—";
+        latencyText.textContent = JSON.stringify(data.latency || {}, null, 2);
+        scoresText.textContent = JSON.stringify(data.scores || {}, null, 2);
+        coachingText.textContent = data.coaching || "";
+
+        if (data.audio_url) {
+          customerAudio.src = `${API_BASE}${data.audio_url}`;
+          customerAudio.play().catch(() => {});
+        }
+
+        if (data.turn_log) {
+          logText.textContent = formatTurnLog(data.turn_log);
+        }
+
+        if (data.latency_log) {
+          renderLatencyChart(data.latency_log);
+        }
+
+        if (data.cost_estimate) {
+          costText.textContent = JSON.stringify(data.cost_estimate, null, 2);
+        }
+
+        if (data.done) {
+          setStatus("Simulation complete (max turns reached).", "done");
+          recordBtn.disabled = true;
+        } else {
+          setStatus("Turn complete. Click “Record & Send” to answer again.", "idle");
+        }
+      } catch (e) {
+        console.error(e);
+        setStatus("Error sending audio turn.", "busy");
+      }
+    }
+
+    function formatTurnLog(turnLog) {
+      return turnLog.map(t => {
+        const scores = t.scores ? JSON.stringify(t.scores, null, 2) : "{}";
+        return `Turn ${t.turn}:\n  Agent: ${t.agent}\n  Customer: ${t.customer}\n  Mode: ${t.mode}\n  Scores: ${scores}`;
+      }).join("\n-----------------------------\n");
+    }
+
+    function renderLatencyChart(latencyLog) {
+      if (!latencyLog || latencyLog.length === 0) {
+        latencyChart.innerHTML = "<small>No turns yet.</small>";
+        return;
+      }
+      let maxTotal = 0;
+      const totals = latencyLog.map(lat => {
+        const total = (lat.asr || 0) + (lat.llm || 0) + (lat.tts || 0);
+        if (total > maxTotal) maxTotal = total;
+        return total;
+      });
+
+      latencyChart.innerHTML = "";
+      latencyLog.forEach((lat, idx) => {
+        const total = totals[idx];
+        const pct = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
+
+        const row = document.createElement("div");
+        row.className = "latency-bar-row";
+
+        const label = document.createElement("div");
+        label.className = "latency-bar-label";
+        label.textContent = `Turn ${idx + 1}`;
+
+        const track = document.createElement("div");
+        track.className = "latency-bar-track";
+
+        const fill = document.createElement("div");
+        fill.className = "latency-bar-fill";
+        fill.style.width = `${pct.toFixed(1)}%`;
+
+        track.appendChild(fill);
+
+        const value = document.createElement("div");
+        value.className = "latency-bar-value";
+        value.textContent = `${total.toFixed(2)}s`;
+
+        row.appendChild(label);
+        row.appendChild(track);
+        row.appendChild(value);
+
+        latencyChart.appendChild(row);
+      });
+    }
+
+    // ---- Session assessment ----
+    assessmentBtn.addEventListener("click", async () => {
+      if (!sessionId) {
+        alert("Start a session first.");
+        return;
+      }
+      assessmentText.textContent = "Loading assessment...";
+
+      try {
+        const res = await fetch(`${API_BASE}/session/assessment/${sessionId}`);
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Error response:", text);
+          assessmentText.textContent = "Error loading assessment.";
+          return;
+        }
+        const data = await res.json();
+        assessmentText.textContent = data.assessment || "(no assessment)";
+      } catch (e) {
+        console.error(e);
+        assessmentText.textContent = "Error loading assessment.";
+      }
+    });
+  </script>
+</body>
+</html>
