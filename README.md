@@ -20,7 +20,7 @@ The focus is on **AI quality**, **stateful multi-agent orchestration**, **observ
 ## Demo Video
 
 **Demo video (WebRTC trainer):**  
-👉 _TBD – add your Loom link here after recording_
+https://www.loom.com/share/874880259b6d472ca9ca82c1e80c32f9
 
 _(In the previous submission I used a turn-based audio demo. For this iteration I added a full WebRTC-based real-time trainer with live scoring and a session assessment.)_
 
@@ -277,5 +277,6 @@ Enrich the scoring rubric (e.g. de-escalation, time to resolution).
 Add exportable session summaries for LMS integration.
 
 ---
+
 
 
