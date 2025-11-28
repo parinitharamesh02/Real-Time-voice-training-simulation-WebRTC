@@ -25,6 +25,8 @@ The focus is on **AI quality**, **stateful multi-agent orchestration**, **observ
 _(In the previous submission I used a turn-based audio demo. For this iteration I added a full WebRTC-based real-time trainer with live scoring and a session assessment.)_
 
 ---
+A PDF is included summarizing my Computer Vision experience and how these capabilities can be applied at Convergent. It also outlines current SOTA CV models we can explore for future product enhancements.
+---
 
 ## What’s New in This Version
 
@@ -275,3 +277,4 @@ Enrich the scoring rubric (e.g. de-escalation, time to resolution).
 Add exportable session summaries for LMS integration.
 
 ---
+
