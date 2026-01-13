@@ -1,8 +1,5 @@
 # Bank Voice Training – Realtime WebRTC + LangGraph Trainer
 
-**Convergent AI – Technical Task (Option A)**  
-**Candidate – Parinitha**
-
 A **real-time, voice-based training environment** where a learner practices handling **bank customer support** calls against an **LLM-driven “customer”**.
 
 This version extends the original turn-based audio prototype with:
@@ -17,17 +14,6 @@ The focus is on **AI quality**, **stateful multi-agent orchestration**, **observ
 
 ---
 
-## Demo Video
-
-**Demo video (WebRTC trainer):**  
-https://www.loom.com/share/874880259b6d472ca9ca82c1e80c32f9
-
-_(In the previous submission I used a turn-based audio demo. For this iteration I added a full WebRTC-based real-time trainer with live scoring and a session assessment.)_
-
----
-A PDF is included summarizing my Computer Vision experience and how these capabilities can be applied at Convergent. It also outlines current SOTA CV models we can explore for future product enhancements.
-
----
 ## What’s New in This Version
 
 Compared to the original turn-based audio demo, this repo now includes:
@@ -260,23 +246,12 @@ RAG is static policy context, not a full document management system.
 
 No avatar / visual agent; UI is intentionally minimal for clarity.
 
-Future Improvements
-
-With more time, I would:
-
-Move to a server-side Realtime relay (hiding the API key).
-
-Add multi-session analytics, trends, and leaderboards.
-
-Expand RAG to more structured policy collections with citations.
-
-Introduce a talking-head avatar for presence and realism.
-
 Enrich the scoring rubric (e.g. de-escalation, time to resolution).
 
 Add exportable session summaries for LMS integration.
 
 ---
+
 
 
 
